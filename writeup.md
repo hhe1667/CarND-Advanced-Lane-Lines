@@ -67,38 +67,63 @@ picked from an example image.
 Then, in the function `process_image()` I perform the perspective transform.
 Below is an example warped image:
 
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
-
-![test2_warped](output_images/test3_warped.jpg)
+![test2_warped.jpg](output_images/test3_warped.jpg)
 
 #### 4. Find lane-line pixels and and fit their positions with a polynomial.
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+I implemented two methods for finding lane-line pixels. One is from scratch using histogram and sliding windows (`find_lane_pixels_by_sliding_windows()`). The other is by searching from previous polynomial area (`search_by_prev_poly()`).
+The found lane pixels are then fit to a second order polynomial (`fit_poly()`).
+I visualized the search area, the found lane-line pixels, and the fit polynomial. Below is an example of this step:
+![test2_viz.jpg](output_images/test2_viz.jpg)
 
-![alt text][image5]
 
-#### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
+#### 5. Calculate the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-I did this in lines # through # in my code in `my_other_file.py`
+I use the formula in the course to compute the radius:
+Radius = (1 + (2Ay + B)**2)**1.5 / |2A|
+To convert the formula to the real world, I derived A' and B' as follow.
+x = Ay**2 + By + C
+x' = ax, y'=by, where a is xm_per_pix, b is ym_per_pix.
+x'/a = A(y'/b)**2 + B(y'/b) + C
+or x' = aA/b**2 y'**2 + aB/b y' + C.
+Thus, A' = aA/b**2, B'=aB/b.
+The formula is implemented in `compute_radius()`.
 
-#### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
+The car position is computed as the diff between image center and the lane-line center.
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
 
-![alt text][image6]
+#### 6. Warp back onto the road with visualization.
 
+I filled the identified lane area between the fitted left and right polynomials. Then warped back onto the road using `cv2.warpPerspective()` with the inverse matrix. This is implemented in `Pipeline.process_image()`. I also plot the radius, car position, and lane-fit visualization.
+Below is an example:
+
+![test2_unwarped.jpg](output_images/test2_unwarped.jpg)
+
+#### 7. Sanity check and tracking previous fitted polynomials for video.
+I did a sanity check on lane widthds, left and right radiuses, and the car position (`Pipeline.process_image()`).
+If the sanity check passed, then I keep the polynomials and use it for lane-line pixels search in subsequent frames.
+Otherwise, if there exists previous polynomials then I reuse the previous poly to plot the lane area.
 ---
 
 ### Pipeline (video)
 
-#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
+I use the same video processing code as in the previous project.
+Here are the processed videos:
 
-Here's a [link to my video result](./project_video.mp4)
+* [output_images/project_video.mp4](output_images/project_video.mp4).
+* [output_images/challenge_video.mp4](output_images/challenge_video.mp4)
+* [output_images/harder_challenge_video.mp4](output_images/harder_challenge_video.mp4)
 
 ---
 
 ### Discussion
 
-#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+My implementation doesn't work quite well on the challenge videos. I could improve these areas if I were going to pursue this project further:
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+* Image thresholding. The yellow lane-line are sometimes not identified, and there are other pixels mis-identified as lane line pixels. I could sample the lane-line pixels and not lane-line pixels to fine tune the thresholds.
+
+* Sanity check. My santiy check conditions are relatively conservative. There is a big headroom for tuning the sanity check thresholds.
+
+* Tracking and smoothing. It would be worth to tune how many frames to track back, when to reset the previous fits, and how to smooth over previous fits.
+
+
