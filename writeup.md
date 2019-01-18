@@ -80,13 +80,21 @@ I visualized the search area, the found lane-line pixels, and the fit polynomial
 #### 5. Calculate the radius of curvature of the lane and the position of the vehicle with respect to center.
 
 I use the formula in the course to compute the radius:
+
 Radius = (1 + (2Ay + B)**2)**1.5 / |2A|
+
 To convert the formula to the real world, I derived A' and B' as follow.
+
 x = Ay**2 + By + C
-x' = ax, y'=by, where a is xm_per_pix, b is ym_per_pix.
+
+x' = ax, y' = by, where a is xm_per_pix, b is ym_per_pix.
+
 x'/a = A(y'/b)**2 + B(y'/b) + C
+
 or x' = aA/b**2 y'**2 + aB/b y' + C.
-Thus, A' = aA/b**2, B'=aB/b.
+
+Thus, A' = aA/b**2, B' = aB/b.
+
 The formula is implemented in `compute_radius()`.
 
 The car position is computed as the diff between image center and the lane-line center.
@@ -99,8 +107,9 @@ Below is an example:
 
 ![test2_unwarped.jpg](output_images/test2_unwarped.jpg)
 
-#### 7. Sanity check and tracking previous fitted polynomials for video.
-I did a sanity check on lane widthds, left and right radiuses, and the car position (`Pipeline.process_image()`).
+#### 7. Sanity check and tracking previous polynomials (for video).
+
+I did a sanity check on lane widths, left and right radiuses, and the car position (`Pipeline.process_image()`).
 If the sanity check passed, then I keep the polynomials and use it for lane-line pixels search in subsequent frames.
 Otherwise, if there exists previous polynomials then I reuse the previous poly to plot the lane area.
 ---
@@ -110,7 +119,7 @@ Otherwise, if there exists previous polynomials then I reuse the previous poly t
 I use the same video processing code as in the previous project.
 Here are the processed videos:
 
-* [output_images/project_video.mp4](output_images/project_video.mp4).
+* [output_images/project_video.mp4](output_images/project_video.mp4)
 * [output_images/challenge_video.mp4](output_images/challenge_video.mp4)
 * [output_images/harder_challenge_video.mp4](output_images/harder_challenge_video.mp4)
 
